@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c1444d53-ae54-420e-817b-72b5a734e2bb" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/matplotlibVis.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/RacecarModel.ipynb" afterPath="$PROJECT_DIR$/RacecarModel.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/matplotlib-visualization-test.ipynb" afterPath="$PROJECT_DIR$/matplotlib-visualization-test.ipynb" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -29,9 +28,11 @@
       <file leaf-file-name="matplotlibVis.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/core/matplotlibVis.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="21">
-              <caret line="1" column="39" lean-forward="false" selection-start-line="1" selection-start-column="39" selection-end-line="1" selection-end-column="39" />
-              <folding />
+            <state relative-caret-position="420">
+              <caret line="20" column="0" lean-forward="true" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+              <folding>
+                <element signature="e#0#31#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -169,9 +170,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/core/matplotlibVis.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="21">
-          <caret line="1" column="39" lean-forward="false" selection-start-line="1" selection-start-column="39" selection-end-line="1" selection-end-column="39" />
-          <folding />
+        <state relative-caret-position="420">
+          <caret line="20" column="0" lean-forward="true" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
