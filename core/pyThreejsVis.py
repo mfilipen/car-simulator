@@ -3,6 +3,11 @@ from IPython.display import display
 from ipywidgets import HTML, Text
 from traitlets import link, dlink
 from core.tf import *
+
+from core.state import *
+from core.map import *
+
+import threading
 import time
 
 
@@ -114,18 +119,20 @@ def getCylinder(length, r1, r2, color):
     return cylinder
 
 
-def getGrid(size=10):
+
+def getGrid(size=20):
     world = getOrigin()
 
     h = size / 2
-    for xi in np.arange(-h, h + 1, 1):
-        X1 = [xi, -h, 0]
-        X2 = [xi, h, 0]
+    for xi in np.arange(-1, h + 2, 1):
+        X1 = [xi, -1, 0]
+        X2 = [xi, h+1, 0]
         world.add(getLine(X1, X2))
 
-    for yi in np.arange(-h, h + 1, 1):
-        X1 = [-h, yi, 0]
-        X2 = [h, yi, 0]
+    for yi in np.arange(-1, h + 2, 1):
+        X1 = [-1, yi, 0]
+        X2 = [h+1, yi, 0]
+
         world.add(getLine(X1, X2))
     return world
 
@@ -136,13 +143,17 @@ def putCylinder(length, H, r1=0.01, r2=0.01, color='orange'):
     return cylinder
 
 
-def putPlane(H, size=10, color='#e0e0e0'):
+
+def putPlane(H, size=12, color='#e0e0e0'):
+
     plane = Mesh(geometry=PlaneGeometry(
         width=size,
         height=size),
         material=MeshLambertMaterial(color=color),
         position=[0, 0, 0])
-    tf(plane, H)
+
+    tf(plane, H * Tx(size/2-1) * Ty(size/2-1))
+
     return plane
 
 
@@ -169,14 +180,22 @@ def getICR(H):
 
 
 class robotPlt:
-    def __init__(self, sizeOfMap=5, rWheel=0.05, hWheel=0.025, wheelBase=0.325, track=0.2):
+
+    def __init__(self, map=None, resolution = 0.1, sizeOfMap=20, rWheel=0.05, hWheel=0.025, wheelBase=0.325, track=0.2):
         self.sizeOfMap = sizeOfMap
+        self.resolution = resolution
         self.rWheel = rWheel
         self.hWheel = hWheel
 
         self.wheelBase = wheelBase
         self.track = track
         self.world = getOrigin()
+
+
+        if map==None:
+            self.map_array = Map()
+            self.map_array.map_from_png()
+            self.map = self.build_map()
 
     def getRadius(self, alpha):
         r = self.wheelBase / np.tan(alpha)
@@ -211,6 +230,39 @@ class robotPlt:
         wheel = self.getWheel()
         tf(wheel, H)
         return wheel
+
+    def getWall(self):
+        wall = Mesh(geometry=CylinderGeometry(
+            radiusTop=0.05,
+            radiusBottom=0.05,
+            height=0.4,
+        ),
+            material=MeshLambertMaterial(color='#787878'),
+            position=[0, 0, 0])
+        return wall
+
+    def putWall(self, H):
+        wall = self.getWall()
+        tf(wall, H * Tz(0.2) * Rx(np.pi / 2))
+        return wall
+
+
+    def build_map(self):
+        Hmaplink =  Rz(np.pi * 3/2) * Tx(-self.sizeOfMap/2 + self.resolution/2) *\
+                    Ty(self.resolution/2)
+
+        self.maplink = rf(Hmaplink)
+
+        for i, value in np.ndenumerate(self.map_array.data):
+            if (value!=0):
+                x = i[0] * self.resolution
+                y = i[1] * self.resolution
+
+                H = Tx(x) * Ty(y)
+                self.maplink.add(self.putWall(H))
+
+        return self.maplink
+
 
     def robot3d(self):
         Hbaselink = Tx(0)
@@ -291,6 +343,7 @@ class robotPlt:
         return self.baselink
 
     def state(self, x, y, theta, steerAngle):
+
         z = self.rWheel
         H = Tx(x) * Ty(y) * Tz(z) * Rz(theta)
         tf(self.baselink, H)
@@ -319,6 +372,8 @@ class robotPlt:
 
     def flushWorld(self):
         self.world.children = [getCoordinateFrame(length=1), getGrid(), putPlane(Tz(-0.01))]
+        self.world.add(self.map)
+
 
         # world.add(getOrigin(color='red', X=[1,0,0]))
         # world.add(getOrigin(color='green',X=[0,1,0]))
@@ -344,3 +399,48 @@ class robotPlt:
                             scene=scene, controls=[OrbitControls(controlling=c)],
                             width=800, height=800)
         display(renderer)
+
+
+    def state_step(self, state):
+        self.state(state.x, state.y, state.theta, state.steerAngle)
+
+    def show_states_animation(self, states, dt = 0):
+        self.world.add(self.baselink)
+
+        n = 0
+        last_shown = -1
+
+        while (True):
+            n = len(states)
+            time.sleep(0.1)
+            if (last_shown != n-1):
+                for i in range(last_shown, n):
+                    self.state_step(states[i])
+                    time.sleep(dt)
+                    last_shown = i
+
+    def state_subscriber(self, states):
+        thread = threading.Thread(target=self.show_states_animation, args=(states, 0.0))
+        thread.start()
+
+
+
+if __name__ == "__main__":
+    state = robotPlt()
+    state.plotWorld()
+
+    w = 1
+    N = 100
+    T = 4 * np.pi
+    dt = T / N
+    t = np.linspace(0, T, num=N)
+    steerAngle = 0.314231899 * np.ones(np.shape(t))
+    theta = w * t + np.pi / 2
+
+    r = 1
+
+    x = r * (np.cos(w * t))
+    y = r * (np.sin(w * t))
+
+    state.showStates(x, y, theta, steerAngle, dt=0.0)
+    state.state(0.3375, 0.3375, 0, np.pi / 5)
