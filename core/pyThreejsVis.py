@@ -195,7 +195,11 @@ class robotPlt:
         if map==None:
             self.map_array = Map()
             self.map_array.map_from_png()
-            self.map = self.build_map()
+
+        else:
+            self.map_array = map
+
+        self.map = self.build_map()
 
     def getRadius(self, alpha):
         r = self.wheelBase / np.tan(alpha)

@@ -113,6 +113,7 @@ def RzSym(theta):
                     [0, 0, 0, 1]])
     return R
 
+
 O = getVector(0, 0, 0)
 I = getVector(1, 0, 0)
 J = getVector(0, 1, 0)
